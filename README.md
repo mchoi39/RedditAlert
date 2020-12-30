@@ -4,6 +4,12 @@ Foobar is a Python library for dealing with word pluralization.
 
 ## Installation
 
+Clone the repository
+
+```bash
+git clone git@github.com:mchoi39/RedditAlert.git
+```
+
 Use the package manager [pip](https://pip.pypa.io/en/stable/) to install selenium.
 
 Use the package manager [brew](https://brew.sh/) to install chromedriver
@@ -29,6 +35,12 @@ reddit = praw.Reddit(
     username="REDDIT USERNAME",
     password="REDDIT PASSWORD"
 )
+```
+
+Run by using in the folder directory
+
+```bash
+python MainApplication.py
 ```
 
 
