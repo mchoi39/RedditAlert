@@ -4,6 +4,7 @@ import time
 from functools import partial
 import smtplib, ssl
 from RedditAlert.env import env_variables
+from selenium import webdriver
 
 keywords = []
 newposts = []
@@ -15,13 +16,25 @@ buttons = []
 
 
 class MainApplication:
+    """
+    Method that opens a new chrome tab with passed url as parameter
+    """
+    def open_in_browser(self, url):
+        driver = webdriver.Chrome()
+        driver.get(url)
 
+    """
+    Method that sends email
+    """
     def send_email(self, content):
         global email, password
         with smtplib.SMTP_SSL("smtp.gmail.com", port, context=context) as server:
             server.login(email, password)
             server.sendmail(email, email, content)
 
+    """
+    Opens a new thread and sends the command to run
+    """
     def start_btn(self, subreddit, keyword, mode):
         if mode == "keyword":
             self.is_running = True
@@ -32,6 +45,9 @@ class MainApplication:
             self.th = threading.Thread(target=partial(self.run, subreddit, keyword, mode))
             self.th.start()
 
+    """
+    Starts the tracking every 1 second
+    """
     def run(self, sub, keyword, mode):
         global keywords, buttons
         global newposts
@@ -49,6 +65,8 @@ class MainApplication:
                         if buttons[3].get() == 1:
                             emailThread = threading.Thread(target=self.send_email, args=(submission.title,))
                             emailThread.start()
+                        if buttons[4].get() == 1:
+                            self.open_in_browser(submission.url)
                 time.sleep(1)
         elif mode == "newposts":
             buttons[1]['state'] = "disabled"
@@ -62,8 +80,13 @@ class MainApplication:
                         if buttons[3].get() == 1:
                             emailThread = threading.Thread(target=self.send_email, args=(submission.title,))
                             emailThread.start()
+                        if buttons[4].get() == 1:
+                            self.open_in_browser(submission.url)
                 time.sleep(1)
-
+    """
+    Stops the thread running currently
+    @mode is mode to turn off
+    """
     def stop(self, mode):
         try:
             if mode == "keyword":
@@ -78,7 +101,10 @@ class MainApplication:
             self.th = None
         except (AttributeError, RuntimeError):  # beep thread could be None
             pass
-
+    """
+    Get gmail information to be able to send email and receive from itself.
+    Turn on less secure app access on https://myaccount.google.com/lesssecureapps
+    """
     def get_email_and_pwd(self):
         root = tk.Tk()
         emailbox = tk.Entry(root)
@@ -110,6 +136,10 @@ class MainApplication:
         tk.Button(root, command=on_dont_click, text='Do not use email').pack(side='top')
         root.mainloop()
 
+    """
+    GUI setup
+    Not using __init__ because of thread issues with tkinter
+    """
     def guiSetup(self):
         global buttons, email, password
         self.get_email_and_pwd()
