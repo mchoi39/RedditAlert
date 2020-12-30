@@ -14,16 +14,17 @@ context = ssl.create_default_context()
 buttons = []
 
 
-class MainApplication():
+class MainApplication:
 
-    def sendEmail(self, content):
+    def send_email(self, content):
         global email, password
+        print("sending to " + email)
         with smtplib.SMTP_SSL("smtp.gmail.com", port, context=context) as server:
             server.login(email, password)
             server.sendmail(email, email, content)
 
-    def startBtn(self, subreddit, keyword, mode):
-        if (mode == "keyword"):
+    def start_btn(self, subreddit, keyword, mode):
+        if mode == "keyword":
             self.is_running = True
             self.th = threading.Thread(target=partial(self.run, subreddit, keyword, mode))
             self.th.start()
@@ -32,33 +33,36 @@ class MainApplication():
             self.th = threading.Thread(target=partial(self.run, subreddit, keyword, mode))
             self.th.start()
 
-
-
     def run(self, sub, keyword, mode):
         global keywords, buttons
         global newposts
 
-        if (mode == "keyword"):
+        if mode == "keyword":
             buttons[0]['state'] = "disabled"
             print("Started keyword search")
             for submission in env_variables.reddit.subreddit(sub.get()).search(keyword.get(), sort="new"):
-                if (submission.title not in keywords):
+                if submission.title not in keywords:
                     keywords.append(submission.title)
 
-            while (self.is_running == True):
+            while self.is_running:
                 for submission in env_variables.reddit.subreddit(sub.get()).search(keyword.get(), sort="new", limit=5):
-                    if (submission.title not in keywords):
-                        self.sendEmail(submission.title)
+                    if submission.title not in keywords:
+                        if buttons[3].get() == 1:
+                            emailThread = threading.Thread(target=self.send_email, args=(submission.title,))
+                            emailThread.start()
                 time.sleep(1)
-        elif (mode == "newposts"):
+        elif mode == "newposts":
             buttons[1]['state'] = "disabled"
             print("Started new posts search")
             for submission in env_variables.reddit.subreddit(sub.get()).search(keyword.get(), sort="new"):
-                if (submission.title not in keywords):
+                if submission.title not in keywords:
                     newposts.append(submission.title)
-            while (self.is_runningNew == True):
+            while self.is_runningNew:
                 for submission in env_variables.reddit.subreddit(sub.get()).search(keyword.get(), sort="new", limit=5):
-                    self.sendEmail(submission.title)
+                    if submission.title not in newposts:
+                        if buttons[3].get() == 1:
+                            emailThread = threading.Thread(target=self.send_email, args=(submission.title,))
+                            emailThread.start()
                 time.sleep(1)
 
     def stop(self, mode):
@@ -76,39 +80,40 @@ class MainApplication():
         except (AttributeError, RuntimeError):  # beep thread could be None
             pass
 
-    def getEmailandPwd(self):
+    def get_email_and_pwd(self):
         root = tk.Tk()
         emailbox = tk.Entry(root)
         pwdbox = tk.Entry(root, show='*')
 
-        def onpwdentry(evt):
+        def on_pwd_entry(evt):
             global password
             global email
             email = emailbox.get()
             password = pwdbox.get()
             root.destroy()
 
-        def onokclick():
+        def on_ok_click():
             global password
             global email
             email = emailbox.get()
             password = pwdbox.get()
             root.destroy()
 
-        def ondonotclick():
+        def on_dont_click():
             root.destroy()
+
         tk.Label(root, text='Email').pack(side='top')
         emailbox.pack(side='top')
         tk.Label(root, text='Password').pack(side='top')
         pwdbox.pack(side='top')
-        pwdbox.bind('<Return>', onpwdentry)
-        tk.Button(root, command=onokclick, text='OK').pack(side='top')
-        tk.Button(root, command=ondonotclick, text='Do not use email').pack(side='top')
+        pwdbox.bind('<Return>', on_pwd_entry)
+        tk.Button(root, command=on_ok_click, text='OK').pack(side='top')
+        tk.Button(root, command=on_dont_click, text='Do not use email').pack(side='top')
         root.mainloop()
 
     def guiSetup(self):
         global buttons, email, password
-        self.getEmailandPwd()
+        self.get_email_and_pwd()
         window = tk.Tk()
         window.minsize(width=300, height=300)
         window.title("Reddit Notifier")
@@ -138,27 +143,29 @@ class MainApplication():
             varEmailCheck.set(1)
 
         start = tk.Button(window, text='Alert new posts with keyword', width=25,
-                          command=partial(self.startBtn, field_entry1, field_entry2, "keyword"))
+                          command=partial(self.start_btn, field_entry1, field_entry2, "keyword"))
         start.grid(row=1, column=2)
 
-        stopKeywordSearch = tk.Button(window, text='Stop keyword search', width=25,
+        stop_keyword_search = tk.Button(window, text='Stop keyword search', width=25,
                                       command=partial(self.stop, "keyword"))
-        stopKeywordSearch.grid(row=2, column=2)
+        stop_keyword_search.grid(row=2, column=2)
 
-        newPosts = tk.Button(window, text='Alert new posts', width=25,
-                             command=partial(self.startBtn, field_entry1, field_entry2, "newposts"))
-        newPosts.grid(row=4, column=2)
+        new_posts = tk.Button(window, text='Alert new posts', width=25,
+                             command=partial(self.start_btn, field_entry1, field_entry2, "newposts"))
+        new_posts.grid(row=4, column=2)
 
-        stopNewPostSearch = tk.Button(window, text='Stop new posts search', width=25,
+        stop_new_posts_search = tk.Button(window, text='Stop new posts search', width=25,
                                       command=partial(self.stop, "newposts"))
-        stopNewPostSearch.grid(row=5, column=2)
+        stop_new_posts_search.grid(row=5, column=2)
 
+        # Add all buttons to a global array to have access to the buttons when needed
         buttons.append(start)
-        buttons.append(newPosts)
+        buttons.append(new_posts)
         buttons.append(emailCheck)
+        buttons.append(varEmailCheck)
+        buttons.append(varBrowserCheck)
         buttons.append(browserCheck)
         window.mainloop()
-
 
 
 if __name__ == "__main__":
