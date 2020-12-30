@@ -18,6 +18,7 @@ Get your client id and client secret from [get client id and secret](https://www
 2. Fill out information and select script
 <img src="./redditinfo.png" raw=true>
 Add reddit client id, client secret, username, and password in env/env_variables.py
+
 ```python
 import praw
 
