@@ -18,7 +18,6 @@ class MainApplication:
 
     def send_email(self, content):
         global email, password
-        print("sending to " + email)
         with smtplib.SMTP_SSL("smtp.gmail.com", port, context=context) as server:
             server.login(email, password)
             server.sendmail(email, email, content)
@@ -131,16 +130,16 @@ class MainApplication:
         field_entry2 = tk.Entry(window)
         field_entry2.grid(row=2, column=1)
 
-        varBrowserCheck = tk.IntVar()
-        browserCheck = tk.Checkbutton(window, text="Open in browser", variable=varBrowserCheck)
-        browserCheck.grid(row=4, column=0)
-        varEmailCheck = tk.IntVar()
-        emailCheck = tk.Checkbutton(window, text="Send email", variable=varEmailCheck)
-        emailCheck.grid(row=5, column=0)
+        var_browser_check = tk.IntVar()
+        browser_check = tk.Checkbutton(window, text="Open in browser", variable=var_browser_check)
+        browser_check.grid(row=4, column=0)
+        var_email_check = tk.IntVar()
+        email_check = tk.Checkbutton(window, text="Send email", variable=var_email_check)
+        email_check.grid(row=5, column=0)
         if email == "" and password == "":
-            emailCheck['state'] = 'disabled'
+            email_check['state'] = 'disabled'
         else:
-            varEmailCheck.set(1)
+            var_email_check.set(1)
 
         start = tk.Button(window, text='Alert new posts with keyword', width=25,
                           command=partial(self.start_btn, field_entry1, field_entry2, "keyword"))
@@ -161,10 +160,10 @@ class MainApplication:
         # Add all buttons to a global array to have access to the buttons when needed
         buttons.append(start)
         buttons.append(new_posts)
-        buttons.append(emailCheck)
-        buttons.append(varEmailCheck)
-        buttons.append(varBrowserCheck)
-        buttons.append(browserCheck)
+        buttons.append(email_check)
+        buttons.append(var_email_check)
+        buttons.append(var_browser_check)
+        buttons.append(browser_check)
         window.mainloop()
 
 
